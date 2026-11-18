@@ -35,11 +35,11 @@ Registry reads: `ownerOfHandle(string) → address` (`0x1da94fb4`), `handleOf(ad
 
 Event: `NameSent(address indexed from, address indexed to, string handle, address token, uint256 amount)` — topic `0x43c38c2e3404021549d92a3fb14251b9f1d12fb78ad329c08092b7b30e58570f`. `token == address(0)` means the native coin.
 
-## Worked flow — "send $1 of BNB to abangda.ai"
+## Worked flow — "send $1 of BNB to agenticname.ai"
 
-1. Resolve: `resolve("abangda")` → recipient address. **Show the user the name, the resolved address, and the exact amount; proceed only with the user's confirmation through their wallet's own flow.**
+1. Resolve: `resolve("agenticname")` → recipient address. **Show the user the name, the resolved address, and the exact amount; proceed only with the user's confirmation through their wallet's own flow.**
 2. Convert: $1 → BNB at a current price source of your choice; state the rate you used.
-3. Send: call `sendBNB("abangda")` with `value` = the BNB amount in wei.
+3. Send: call `sendBNB("agenticname")` with `value` = the BNB amount in wei.
 4. Verify: wait for the receipt (`status == 0x1`), then report the transaction hash and the recipient address to the user.
 
 For tokens: first `approve(agenticRoute, exactAmount)` on the token contract, wait for that receipt, then `sendToken(handle, token, amount)`.

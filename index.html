@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Route — Send crypto to a name</title>
+<style>
+  :root{--bg:#0d1016;--panel:#151a23;--panel2:#1a212e;--line:#232c3d;--gold:#f0b90b;--txt:#e8eaf0;--mut:#8a93a6;--grn:#2ebd85;--red:#e5534b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:18px 14px 40px}
+  .wrap{max-width:520px;margin:0 auto}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .logo{font-size:21px;font-weight:800;letter-spacing:.2px}.logo span{color:var(--gold)}
+  .net{font-size:11px;color:var(--gold);border:1px solid #4a3d08;background:#241d03;padding:3px 9px;border-radius:999px}
+  .tag{color:var(--mut);font-size:13px;margin-bottom:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+  .card h3{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);margin-bottom:12px}
+  label{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px}
+  label:first-of-type{margin-top:0}
+  input,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:11px 12px;font-size:15px;outline:none}
+  input:focus,select:focus{border-color:var(--gold)}
+  .namein{display:flex;align-items:stretch}
+  .namein input{border-radius:10px 0 0 10px;border-right:none}
+  .suffix{display:flex;align-items:center;background:#20293a;border:1px solid var(--line);border-left:none;border-radius:0 10px 10px 0;padding:0 14px;color:var(--gold);font-weight:700}
+  .resolved{font-size:13px;margin-top:8px;min-height:20px;color:var(--mut);word-break:break-all}
+  .resolved b{color:var(--grn)} .resolved .err{color:var(--red)}
+  .btn{width:100%;background:var(--gold);color:#111;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;margin-top:16px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:0;width:auto;padding:9px 16px;font-size:14px}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .addr{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mut);word-break:break-all}
+  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;background:#0f2c1e;color:var(--grn);border:1px solid #14532d}
+  .pill.no{background:#2c1414;color:var(--red);border-color:#5b2121}
+  .bal{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .bal:last-child{border-bottom:none}.bal b{font-variant-numeric:tabular-nums}
+  .stat{display:flex;gap:10px}.stat>div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .stat .n{font-size:19px;font-weight:800}.stat .l{font-size:11px;color:var(--mut)}
+  .send-item{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .send-item:last-child{border-bottom:none}
+  .send-item a{color:var(--gold);text-decoration:none}
+  .fine{color:var(--mut);font-size:12px;text-align:center;margin-top:6px}
+  .fine a{color:var(--gold);text-decoration:none}
+  #status{font-size:13px;margin-top:10px;min-height:18px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Agentic <span>Route</span></div>
+    <div class="net">BSC TESTNET · REHEARSAL</div>
+  </header>
+  <div class="tag">Send crypto to an Agent ID name — not a raw address. Pure end-to-end: the contract never holds your funds, has no owner, no admin, no fees.</div>
+
+  <div class="card">
+    <div class="row">
+      <h3 style="margin:0">Your wallet</h3>
+      <button class="btn ghost" id="connectBtn">Connect wallet</button>
+    </div>
+    <div id="walletInfo" class="hidden" style="margin-top:10px">
+      <div class="addr" id="myAddr"></div>
+      <div style="margin-top:8px" id="myBadge"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Send to a name</h3>
+    <label>Recipient Agent ID name</label>
+    <div class="namein"><input id="toName" placeholder="e.g. 0xkylian" autocomplete="off" spellcheck="false"><div class="suffix">.ai</div></div>
+    <div class="resolved" id="resolved">Type a name to see the address it resolves to.</div>
+    <label>Asset</label>
+    <select id="asset">
+      <option value="native">BNB (native)</option>
+      <option value="token">ERC-20 token (paste contract)</option>
+    </select>
+    <div id="tokenBox" class="hidden">
+      <label>Token contract address</label>
+      <input id="tokenAddr" placeholder="0x…" autocomplete="off" spellcheck="false">
+      <div class="resolved" id="tokenInfo"></div>
+    </div>
+    <label>Amount</label>
+    <input id="amount" placeholder="0.0" inputmode="decimal" autocomplete="off">
+    <button class="btn" id="sendBtn" disabled>Connect wallet first</button>
+    <div id="status"></div>
+  </div>
+
+  <div class="card">
+    <h3>Your balances across chains</h3>
+    <div id="balances"><div class="fine" style="text-align:left">Connect your wallet — balances are public data, read directly from each chain. No signature, no approval.</div></div>
+  </div>
+
+  <div class="card">
+    <h3>Live on this contract</h3>
+    <div class="stat">
+      <div><div class="n" id="stSends">–</div><div class="l">sends</div></div>
+      <div><div class="n" id="stSenders">–</div><div class="l">unique senders</div></div>
+      <div><div class="n" id="stVol">–</div><div class="l">tBNB routed</div></div>
+    </div>
+    <div id="recent" style="margin-top:8px"></div>
+  </div>
+
+  <div class="fine">
+    Contract (testnet): <a id="contractLink" target="_blank" rel="noopener"></a><br>
+    Open-source · verified · no custody · exact-amount approvals only · mainnet soon
+  </div>
+</div>
+
+<script>
+"use strict";
+/* Agentic Route — dependency-free static dApp. No backend, no libraries:
+   every read is a public RPC call, every write is signed in your wallet. */
+const NET = {
+  chainId: 97, chainHex: "0x61", name: "BSC Testnet",
+  rpc: "https://bsc-testnet.publicnode.com",
+  route: "0x41E21f1882F648d821039B5a47752F0dFE1a91c7",
+  registry: "0xF6532Dcf6Bb69727FA9Ee6bbB9f284E1F9ffa1f7",
+  explorer: "https://testnet.bscscan.com", native: "tBNB"
+};
+const CHAINS = [
+  { name: "BNB Chain", rpc: "https://bsc-dataseed.binance.org", sym: "BNB" },
+  { name: "Ethereum", rpc: "https://ethereum.publicnode.com", sym: "ETH" },
+  { name: "Base", rpc: "https://base.publicnode.com", sym: "ETH" },
+  { name: "Arbitrum", rpc: "https://arbitrum-one.publicnode.com", sym: "ETH" }
+];
+const SEL = { balanceOf:"0x70a08231", ownerOfHandle:"0x1da94fb4", handleOf:"0xc50a1514",
+  resolve:"0x461a4478", sendBNB:"0xfa89e6a9", sendToken:"0x4ad16656",
+  approve:"0x095ea7b3", allowance:"0xdd62ed3e", decimals:"0x313ce567", symbol:"0x95d89b41" };
+const TOPIC_SENT = "0x43c38c2e3404021549d92a3fb14251b9f1d12fb78ad329c08092b7b30e58570f";
+
+const $ = id => document.getElementById(id);
+const strip0x = h => h.startsWith("0x") ? h.slice(2) : h;
+const encAddr = a => "0".repeat(24) + strip0x(a).toLowerCase();
+const encUint = n => n.toString(16).padStart(64, "0");
+const encStrTail = s => { const b = [...new TextEncoder().encode(s)];
+  return encUint(BigInt(b.length)) + b.map(x => x.toString(16).padStart(2, "0")).join("").padEnd(Math.ceil(b.length / 32) * 64, "0"); };
+const call1Str = (sel, s) => sel + encUint(32n) + encStrTail(s);            // f(string)
+const decAddr = h => "0x" + strip0x(h).slice(-40);
+const decUint = h => BigInt("0x" + strip0x(h));
+const decStr = h => { const x = strip0x(h); const off = Number(BigInt("0x" + x.slice(0, 64))) * 2;
+  const len = Number(BigInt("0x" + x.slice(off, off + 64)));
+  const bytes = []; for (let i = 0; i < len; i++) bytes.push(parseInt(x.slice(off + 64 + i * 2, off + 66 + i * 2), 16));
+  return new TextDecoder().decode(new Uint8Array(bytes)); };
+function parseAmount(str, decimals) {
+  const m = /^(\d*)(?:\.(\d*))?$/.exec(str.trim()); if (!m) return null;
+  const whole = m[1] || "0", frac = (m[2] || "").slice(0, decimals).padEnd(decimals, "0");
+  return BigInt(whole) * 10n ** BigInt(decimals) + BigInt(frac || "0");
+}
+const fmt = (wei, dec, sym) => { const v = Number(wei) / 10 ** dec;
+  return v.toLocaleString("en-US", { maximumFractionDigits: 6 }) + " " + sym; };
+
+let rpcId = 0;
+async function rpc(url, method, params) {
+  const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: ++rpcId, method, params }) });
+  const j = await r.json(); if (j.error) throw new Error(j.error.message || "RPC error"); return j.result;
+}
+const view = (to, data) => rpc(NET.rpc, "eth_call", [{ to, data }, "latest"]);
+
+let account = null, resolvedTo = null, tokenMeta = null;
+
+/* ---------- name resolution (read-only, works before connecting) ---------- */
+let resolveTimer = null;
+$("toName").addEventListener("input", () => { clearTimeout(resolveTimer); resolveTimer = setTimeout(resolveName, 400); });
+async function resolveName() {
+  let name = $("toName").value.trim().toLowerCase().replace(/\.ai$/, "");
+  resolvedTo = null; updateSendBtn();
+  if (!name) { $("resolved").textContent = "Type a name to see the address it resolves to."; return; }
+  if (!/^[a-z0-9]{3,20}$/.test(name)) { $("resolved").innerHTML = '<span class="err">Invalid name — 3–20 chars, a–z and 0–9 only.</span>'; return; }
+  $("resolved").textContent = "Resolving…";
+  try {
+    const out = await view(NET.route, call1Str(SEL.resolve, name));
+    resolvedTo = decAddr(out);
+    $("resolved").innerHTML = "<b>" + name + ".ai</b> → " + resolvedTo;
+  } catch (e) { $("resolved").innerHTML = '<span class="err">Name not found — no Agent ID registered as “' + name + '”.</span>'; }
+  updateSendBtn();
+}
+
+/* ---------- token info ---------- */
+$("asset").addEventListener("change", () => { $("tokenBox").classList.toggle("hidden", $("asset").value !== "token"); updateSendBtn(); });
+$("tokenAddr").addEventListener("input", async () => {
+  tokenMeta = null; const a = $("tokenAddr").value.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(a)) { $("tokenInfo").textContent = ""; updateSendBtn(); return; }
+  try {
+    const dec = Number(decUint(await view(a, SEL.decimals)));
+    let sym = "TOKEN"; try { sym = decStr(await view(a, SEL.symbol)); } catch (e) {}
+    tokenMeta = { addr: a, dec, sym }; $("tokenInfo").innerHTML = "<b>" + sym + "</b> · " + dec + " decimals";
+  } catch (e) { $("tokenInfo").innerHTML = '<span class="err">Not an ERC-20 contract on this chain.</span>'; }
+  updateSendBtn();
+});
+
+/* ---------- wallet ---------- */
+$("connectBtn").addEventListener("click", async () => {
+  if (!window.ethereum) { $("status").textContent = "No wallet found — open this page in your wallet's browser (e.g. Binance App DApp browser or MetaMask)."; return; }
+  try {
+    const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
+    account = accs[0];
+    try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: NET.chainHex }] }); }
+    catch (e) { if (e.code === 4902) await window.ethereum.request({ method: "wallet_addEthereumChain",
+      params: [{ chainId: NET.chainHex, chainName: NET.name, rpcUrls: [NET.rpc], nativeCurrency: { name: "tBNB", symbol: "tBNB", decimals: 18 } }] }); }
+    $("connectBtn").textContent = "Connected";
+    $("walletInfo").classList.remove("hidden");
+    $("myAddr").textContent = account;
+    const bal = decUint(await view(NET.registry, SEL.balanceOf + encAddr(account)));
+    if (bal > 0n) {
+      let own = ""; try { own = decStr(await view(NET.registry, SEL.handleOf + encAddr(account))); } catch (e) {}
+      $("myBadge").innerHTML = '<span class="pill">Agent ID holder' + (own ? " · you are " + own + ".ai" : "") + "</span>";
+    } else {
+      $("myBadge").innerHTML = '<span class="pill no">No Agent ID on this wallet — you can receive, but sending is holder-only</span>';
+    }
+    loadBalances(); updateSendBtn();
+  } catch (e) { $("status").textContent = "Connection rejected."; }
+});
+
+async function loadBalances() {
+  const box = $("balances"); box.innerHTML = "";
+  for (const c of CHAINS) {
+    const row = document.createElement("div"); row.className = "bal";
+    row.innerHTML = "<span>" + c.name + "</span><b>…</b>"; box.appendChild(row);
+    try { const b = await rpc(c.rpc, "eth_getBalance", [account, "latest"]);
+      row.querySelector("b").textContent = fmt(BigInt(b), 18, c.sym);
+    } catch (e) { row.querySelector("b").textContent = "unavailable"; }
+  }
+}
+
+function updateSendBtn() {
+  const b = $("sendBtn");
+  if (!account) { b.disabled = true; b.textContent = "Connect wallet first"; return; }
+  if (!resolvedTo) { b.disabled = true; b.textContent = "Enter a valid recipient name"; return; }
+  if ($("asset").value === "token" && !tokenMeta) { b.disabled = true; b.textContent = "Enter a valid token contract"; return; }
+  b.disabled = false; b.textContent = "Send";
+}
+
+/* ---------- sending (signed in the user's own wallet) ---------- */
+async function waitReceipt(hash) {
+  for (let i = 0; i < 60; i++) { const r = await rpc(NET.rpc, "eth_getTransactionReceipt", [hash]);
+    if (r) { if (r.status !== "0x1") throw new Error("Transaction reverted"); return r; }
+    await new Promise(s => setTimeout(s, 2000)); }
+  throw new Error("Timed out waiting for confirmation");
+}
+$("sendBtn").addEventListener("click", async () => {
+  const name = $("toName").value.trim().toLowerCase().replace(/\.ai$/, "");
+  const st = $("status"); st.textContent = "";
+  try {
+    if ($("asset").value === "native") {
+      const amount = parseAmount($("amount").value, 18);
+      if (!amount || amount === 0n) { st.textContent = "Enter an amount above zero."; return; }
+      st.textContent = "Confirm the send in your wallet…";
+      const hash = await window.ethereum.request({ method: "eth_sendTransaction",
+        params: [{ from: account, to: NET.route, value: "0x" + amount.toString(16), data: call1Str(SEL.sendBNB, name) }] });
+      st.innerHTML = "Sent! <a href='" + NET.explorer + "/tx/" + hash + "' target='_blank' rel='noopener'>View transaction</a>";
+    } else {
+      const amount = parseAmount($("amount").value, tokenMeta.dec);
+      if (!amount || amount === 0n) { st.textContent = "Enter an amount above zero."; return; }
+      const allow = decUint(await view(tokenMeta.addr, SEL.allowance + encAddr(account) + encAddr(NET.route)));
+      if (allow < amount) {
+        st.textContent = "Step 1 of 2 — approve exactly " + fmt(amount, tokenMeta.dec, tokenMeta.sym) + " in your wallet (never unlimited)…";
+        const ah = await window.ethereum.request({ method: "eth_sendTransaction",
+          params: [{ from: account, to: tokenMeta.addr, data: SEL.approve + encAddr(NET.route) + encUint(amount) }] });
+        await waitReceipt(ah);
+      }
+      st.textContent = "Step 2 — confirm the send in your wallet…";
+      const data = SEL.sendToken + encUint(96n) + encAddr(tokenMeta.addr) + encUint(amount) + encStrTail(name);
+      const hash = await window.ethereum.request({ method: "eth_sendTransaction",
+        params: [{ from: account, to: NET.route, data }] });
+      st.innerHTML = "Sent! <a href='" + NET.explorer + "/tx/" + hash + "' target='_blank' rel='noopener'>View transaction</a>";
+    }
+    setTimeout(loadStats, 4000);
+  } catch (e) { st.textContent = "Cancelled or failed: " + (e.message || e); }
+});
+
+/* ---------- live stats + recent sends from contract events ---------- */
+async function loadStats() {
+  try {
+    const latest = Number(BigInt(await rpc(NET.rpc, "eth_blockNumber", [])));
+    const logs = [];
+    for (let end = latest; end > latest - 200000 && logs.length < 40; end -= 25000) {
+      const part = await rpc(NET.rpc, "eth_getLogs", [{ address: NET.route, topics: [TOPIC_SENT],
+        fromBlock: "0x" + Math.max(0, end - 24999).toString(16), toBlock: "0x" + end.toString(16) }]).catch(() => []);
+      logs.push(...part);
+    }
+    const senders = new Set(); let vol = 0n;
+    const items = logs.slice(-8).reverse().map(l => {
+      const from = decAddr(l.topics[1]); senders.add(from);
+      const d = strip0x(l.data); const off = Number(BigInt("0x" + d.slice(0, 64))) * 2;
+      const token = decAddr("0x" + d.slice(64, 128)); const amount = BigInt("0x" + d.slice(128, 192));
+      const len = Number(BigInt("0x" + d.slice(off, off + 64)));
+      const bytes = []; for (let i = 0; i < len; i++) bytes.push(parseInt(d.slice(off + 64 + i * 2, off + 66 + i * 2), 16));
+      const handle = new TextDecoder().decode(new Uint8Array(bytes));
+      if (token === "0x0000000000000000000000000000000000000000") vol += amount;
+      return "<div class='send-item'><b>" + handle + ".ai</b> received " + fmt(amount, 18, token === "0x0000000000000000000000000000000000000000" ? NET.native : "tokens") +
+        " · <a href='" + NET.explorer + "/tx/" + l.transactionHash + "' target='_blank' rel='noopener'>tx</a></div>";
+    });
+    logs.forEach(l => senders.add(decAddr(l.topics[1])));
+    $("stSends").textContent = logs.length; $("stSenders").textContent = senders.size;
+    $("stVol").textContent = (Number(vol) / 1e18).toLocaleString("en-US", { maximumFractionDigits: 4 });
+    $("recent").innerHTML = items.join("") || "<div class='fine' style='text-align:left'>No sends yet — be the first.</div>";
+  } catch (e) { /* stats are best-effort */ }
+}
+
+/* ---------- init ---------- */
+$("contractLink").textContent = NET.route; $("contractLink").href = NET.explorer + "/address/" + NET.route;
+const q = new URLSearchParams(location.search).get("to");
+if (q) { $("toName").value = q; resolveName(); }
+loadStats();
+</script>
+</body>
+</html>

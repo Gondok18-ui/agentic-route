@@ -28,6 +28,14 @@ sender ──signs──► AgenticRoute ──forwards──► recipient
 
 - Web app: this repo's `index.html` (GitHub Pages) — a single dependency-free static file.
 - Agent interface: [`skill.md`](skill.md) — addresses, function signatures, worked examples, safety rules.
+
+**Install the skill in one line** (terminal):
+
+```bash
+mkdir -p ~/.agents/skills/agentic-route && curl -sL https://gondok18-ui.github.io/agentic-route/skill.md -o ~/.agents/skills/agentic-route/SKILL.md
+```
+
+…or paste this to your agent: *“Install the Agentic Route skill from https://gondok18-ui.github.io/agentic-route/skill.md and use it whenever I ask to send crypto to an Agent ID name.”*
 - Full design document: [`DESIGN.md`](DESIGN.md).
 
 ## Security & decentralization invariants

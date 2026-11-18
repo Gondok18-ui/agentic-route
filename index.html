@@ -4,105 +4,256 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agentic Route — Send crypto to a name</title>
+<meta name="description" content="Send BNB and tokens to an Agent ID name instead of a raw address. Zero custody, no owner, no fees — pure end-to-end on BNB Chain.">
 <style>
-  :root{--bg:#0d1016;--panel:#151a23;--panel2:#1a212e;--line:#232c3d;--gold:#f0b90b;--txt:#e8eaf0;--mut:#8a93a6;--grn:#2ebd85;--red:#e5534b}
+  :root{
+    --bg:#07090d; --panel:rgba(255,255,255,.03); --panel-solid:#10151d; --line:rgba(255,255,255,.09);
+    --gold:#f0b90b; --gold2:#ffd84d; --txt:#eef1f6; --mut:#97a1b3; --grn:#2ebd85; --red:#ff6b64;
+    --shadow:0 20px 50px rgba(0,0,0,.45);
+  }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--txt);font:15px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:18px 14px 40px}
-  .wrap{max-width:520px;margin:0 auto}
-  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .logo{font-size:21px;font-weight:800;letter-spacing:.2px}.logo span{color:var(--gold)}
-  .net{font-size:11px;color:var(--gold);border:1px solid #4a3d08;background:#241d03;padding:3px 9px;border-radius:999px}
-  .tag{color:var(--mut);font-size:13px;margin-bottom:16px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
-  .card h3{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);margin-bottom:12px}
-  label{display:block;font-size:12px;color:var(--mut);margin:12px 0 6px}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(900px 480px at 50% -120px, rgba(240,185,11,.13), transparent 60%),
+      radial-gradient(700px 500px at 90% 30%, rgba(46,90,255,.06), transparent 60%),
+      var(--bg);
+    color:var(--txt);
+    font:15px/1.6 Inter,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px 56px}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:rgba(7,9,13,.72);border-bottom:1px solid var(--line)}
+  .navin{max-width:1060px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:22px}
+  .brand{display:flex;align-items:center;gap:11px;font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--txt);text-decoration:none}
+  .brand .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--gold2),var(--gold));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(240,185,11,.35)}
+  .brand span{color:var(--gold)}
+  .links{margin-left:auto;display:flex;gap:20px;align-items:center}
+  .links a{color:var(--mut);text-decoration:none;font-size:14px;font-weight:600}
+  .links a:hover{color:var(--txt)}
+  .net{font-size:11px;font-weight:700;color:var(--gold);border:1px solid rgba(240,185,11,.4);background:rgba(240,185,11,.08);padding:4px 10px;border-radius:999px;white-space:nowrap}
+  @media(max-width:640px){.links a{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{text-align:center;padding:64px 10px 40px}
+  .eyebrow{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(240,185,11,.35);background:rgba(240,185,11,.07);padding:6px 14px;border-radius:999px;margin-bottom:22px}
+  h1{font-size:clamp(34px,6vw,58px);line-height:1.08;font-weight:850;letter-spacing:-.03em;max-width:760px;margin:0 auto}
+  h1 .grad{background:linear-gradient(92deg,var(--gold2),var(--gold) 55%,#ff8a00);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--mut);font-size:17px;max-width:620px;margin:20px auto 28px}
+  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .btn-main{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#161006;border:none;border-radius:12px;padding:14px 26px;font-size:16px;font-weight:800;cursor:pointer;text-decoration:none;box-shadow:0 10px 26px rgba(240,185,11,.28);transition:transform .15s, box-shadow .15s}
+  .btn-main:hover{transform:translateY(-1px);box-shadow:0 14px 30px rgba(240,185,11,.36)}
+  .btn-line{background:transparent;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:14px 26px;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;transition:border-color .15s}
+  .btn-line:hover{border-color:rgba(240,185,11,.5)}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .chip{font-size:12.5px;color:var(--mut);border:1px solid var(--line);background:var(--panel);padding:6px 13px;border-radius:999px}
+  .chip b{color:var(--grn);font-weight:700}
+
+  /* ---------- layout & cards ---------- */
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start;margin-top:14px}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:var(--shadow);margin-bottom:18px}
+  .card h3{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);margin-bottom:16px;font-weight:800}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--mut);margin:16px 0 7px}
   label:first-of-type{margin-top:0}
-  input,select{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:11px 12px;font-size:15px;outline:none}
-  input:focus,select:focus{border-color:var(--gold)}
+  input,select{width:100%;background:#0b0f16;border:1px solid var(--line);border-radius:12px;color:var(--txt);padding:13px 14px;font-size:15px;outline:none;transition:border-color .15s, box-shadow .15s;font-family:inherit}
+  input:focus,select:focus{border-color:rgba(240,185,11,.65);box-shadow:0 0 0 3px rgba(240,185,11,.15)}
   .namein{display:flex;align-items:stretch}
-  .namein input{border-radius:10px 0 0 10px;border-right:none}
-  .suffix{display:flex;align-items:center;background:#20293a;border:1px solid var(--line);border-left:none;border-radius:0 10px 10px 0;padding:0 14px;color:var(--gold);font-weight:700}
-  .resolved{font-size:13px;margin-top:8px;min-height:20px;color:var(--mut);word-break:break-all}
+  .namein input{border-radius:12px 0 0 12px;border-right:none}
+  .suffix{display:flex;align-items:center;background:#131a26;border:1px solid var(--line);border-left:none;border-radius:0 12px 12px 0;padding:0 16px;color:var(--gold);font-weight:800}
+  .resolved{font-size:13px;margin-top:9px;min-height:20px;color:var(--mut);word-break:break-all}
   .resolved b{color:var(--grn)} .resolved .err{color:var(--red)}
-  .btn{width:100%;background:var(--gold);color:#111;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:800;cursor:pointer;margin-top:16px}
-  .btn:disabled{opacity:.45;cursor:not-allowed}
-  .btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold);margin-top:0;width:auto;padding:9px 16px;font-size:14px}
+  .btn{width:100%;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#161006;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;margin-top:20px;transition:opacity .15s, transform .15s}
+  .btn:hover:not(:disabled){transform:translateY(-1px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--gold);border:1px solid rgba(240,185,11,.55);margin-top:0;width:auto;padding:9px 18px;font-size:14px}
   .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-  .addr{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mut);word-break:break-all}
-  .pill{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;background:#0f2c1e;color:var(--grn);border:1px solid #14532d}
-  .pill.no{background:#2c1414;color:var(--red);border-color:#5b2121}
-  .bal{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .addr{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--mut);word-break:break-all}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;background:rgba(46,189,133,.12);color:var(--grn);border:1px solid rgba(46,189,133,.4)}
+  .pill.no{background:rgba(255,107,100,.1);color:var(--red);border-color:rgba(255,107,100,.4)}
+  .bal{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
   .bal:last-child{border-bottom:none}.bal b{font-variant-numeric:tabular-nums}
-  .stat{display:flex;gap:10px}.stat>div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
-  .stat .n{font-size:19px;font-weight:800}.stat .l{font-size:11px;color:var(--mut)}
-  .send-item{padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .bal .chain{display:flex;align-items:center;gap:9px;color:var(--mut)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);display:inline-block}
+  .stat{display:flex;gap:10px}
+  .stat>div{flex:1;background:#0b0f16;border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+  .stat .n{font-size:22px;font-weight:850;letter-spacing:-.02em}.stat .l{font-size:11px;color:var(--mut);margin-top:2px}
+  .send-item{padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
   .send-item:last-child{border-bottom:none}
-  .send-item a{color:var(--gold);text-decoration:none}
-  .fine{color:var(--mut);font-size:12px;text-align:center;margin-top:6px}
-  .fine a{color:var(--gold);text-decoration:none}
-  #status{font-size:13px;margin-top:10px;min-height:18px}
+  .send-item a{color:var(--gold);text-decoration:none;font-weight:600}
+  #status{font-size:13.5px;margin-top:12px;min-height:18px}
+  #status a{color:var(--gold)}
   .hidden{display:none}
+  .fine{color:var(--mut);font-size:12.5px}
+  .fine a{color:var(--gold);text-decoration:none}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 20px}
+  @media(max-width:720px){.steps{grid-template-columns:1fr}}
+  .step{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:18px}
+  .step .num{width:28px;height:28px;border-radius:50%;background:rgba(240,185,11,.14);color:var(--gold);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .step b{display:block;font-size:15px;margin-bottom:4px}
+  .step p{color:var(--mut);font-size:13.5px}
+
+  /* ---------- install / terminal ---------- */
+  .term{background:#0a0d12;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+  .termbar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#11161f;border-bottom:1px solid var(--line)}
+  .tdot{width:11px;height:11px;border-radius:50%}
+  .termbar .t{margin-left:8px;font-size:12.5px;color:var(--mut);font-family:ui-monospace,Menlo,monospace}
+  .termbody{padding:18px}
+  .snip{margin-bottom:18px}.snip:last-child{margin-bottom:0}
+  .snip .lbl{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+  .codebox{display:flex;gap:10px;align-items:flex-start;background:#070a0e;border:1px solid var(--line);border-radius:12px;padding:13px 14px}
+  .codebox code{flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.8px;line-height:1.55;color:#d7e0ee;word-break:break-all;white-space:pre-wrap}
+  .codebox code .p{color:var(--gold)}
+  .copybtn{flex:none;background:rgba(240,185,11,.12);color:var(--gold);border:1px solid rgba(240,185,11,.45);border-radius:9px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .copybtn:hover{background:rgba(240,185,11,.22)}
+  .addrbox{display:flex;gap:10px;align-items:center;background:#0b0f16;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:10px}
+  .addrbox .who{flex:none;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);width:74px}
+  .addrbox code{flex:1;font-family:ui-monospace,Menlo,monospace;font-size:12.3px;word-break:break-all;color:#d7e0ee}
+  footer{border-top:1px solid var(--line);margin-top:34px;padding-top:22px;text-align:center;color:var(--mut);font-size:12.5px}
+  footer a{color:var(--gold);text-decoration:none}
+  section{scroll-margin-top:84px}
 </style>
 </head>
 <body>
+
+<nav>
+  <div class="navin">
+    <a class="brand" href="#">
+      <span class="mark"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 17L9.5 6.5M9.5 6.5H5M9.5 6.5V11M20 7l-5.5 10.5M14.5 17.5H19M14.5 17.5V13" stroke="#161006" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="rotate(90 12 12)"/></svg></span>
+      Agentic&nbsp;<span>Route</span>
+    </a>
+    <div class="links">
+      <a href="#send">Send</a>
+      <a href="#activity">Activity</a>
+      <a href="#install">Install skill</a>
+      <a href="#contracts">Contracts</a>
+      <span class="net">BSC TESTNET · REHEARSAL</span>
+    </div>
+  </div>
+</nav>
+
 <div class="wrap">
-  <header>
-    <div class="logo">Agentic <span>Route</span></div>
-    <div class="net">BSC TESTNET · REHEARSAL</div>
-  </header>
-  <div class="tag">Send crypto to an Agent ID name — not a raw address. Pure end-to-end: the contract never holds your funds, has no owner, no admin, no fees.</div>
 
-  <div class="card">
-    <div class="row">
-      <h3 style="margin:0">Your wallet</h3>
-      <button class="btn ghost" id="connectBtn">Connect wallet</button>
+  <div class="hero">
+    <div class="eyebrow">Agent ID · BNB Chain</div>
+    <h1>Send crypto to <span class="grad">a name</span>,<br>not an address.</h1>
+    <p class="sub">Type <b style="color:var(--txt)">abangda.ai</b> instead of a 42-character address. Agentic Route resolves the name from the official Agent ID registry and moves funds directly from your wallet to theirs — the contract never touches your money.</p>
+    <div class="cta">
+      <a class="btn-main" href="#send">Send to a name</a>
+      <a class="btn-line" href="#install">Install the agent skill</a>
     </div>
-    <div id="walletInfo" class="hidden" style="margin-top:10px">
-      <div class="addr" id="myAddr"></div>
-      <div style="margin-top:8px" id="myBadge"></div>
+    <div class="chips">
+      <span class="chip"><b>✓</b> Zero custody</span>
+      <span class="chip"><b>✓</b> No owner · no admin · no pause</span>
+      <span class="chip"><b>✓</b> No fees</span>
+      <span class="chip"><b>✓</b> Exact-amount approvals only</span>
+      <span class="chip"><b>✓</b> Open-source &amp; verified</span>
     </div>
   </div>
 
-  <div class="card">
-    <h3>Send to a name</h3>
-    <label>Recipient Agent ID name</label>
-    <div class="namein"><input id="toName" placeholder="e.g. 0xkylian" autocomplete="off" spellcheck="false"><div class="suffix">.ai</div></div>
-    <div class="resolved" id="resolved">Type a name to see the address it resolves to.</div>
-    <label>Asset</label>
-    <select id="asset">
-      <option value="native">BNB (native)</option>
-      <option value="token">ERC-20 token (paste contract)</option>
-    </select>
-    <div id="tokenBox" class="hidden">
-      <label>Token contract address</label>
-      <input id="tokenAddr" placeholder="0x…" autocomplete="off" spellcheck="false">
-      <div class="resolved" id="tokenInfo"></div>
+  <div class="steps">
+    <div class="step"><div class="num">1</div><b>Resolve</b><p>The name is looked up in the official Agent ID registry — publicly, before you even connect a wallet.</p></div>
+    <div class="step"><div class="num">2</div><b>Confirm</b><p>You see the exact address the name resolves to, and approve the transaction in your own wallet. Nothing is ever pre-signed.</p></div>
+    <div class="step"><div class="num">3</div><b>Sent, direct</b><p>Funds move wallet → wallet in one transaction. The contract holds nothing, skims nothing, and can be stopped by no one.</p></div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <section class="card" id="send">
+        <h3>Send to a name</h3>
+        <label>Recipient Agent ID name</label>
+        <div class="namein"><input id="toName" placeholder="e.g. 0xkylian" autocomplete="off" spellcheck="false"><div class="suffix">.ai</div></div>
+        <div class="resolved" id="resolved">Type a name to see the address it resolves to.</div>
+        <label>Asset</label>
+        <select id="asset">
+          <option value="native">BNB (native)</option>
+          <option value="token">ERC-20 token (paste contract)</option>
+        </select>
+        <div id="tokenBox" class="hidden">
+          <label>Token contract address</label>
+          <input id="tokenAddr" placeholder="0x…" autocomplete="off" spellcheck="false">
+          <div class="resolved" id="tokenInfo"></div>
+        </div>
+        <label>Amount</label>
+        <input id="amount" placeholder="0.0" inputmode="decimal" autocomplete="off">
+        <button class="btn" id="sendBtn" disabled>Connect wallet first</button>
+        <div id="status"></div>
+      </section>
+
+      <section class="card" id="activity">
+        <h3>Live on this contract</h3>
+        <div class="stat">
+          <div><div class="n" id="stSends">–</div><div class="l">sends</div></div>
+          <div><div class="n" id="stSenders">–</div><div class="l">unique senders</div></div>
+          <div><div class="n" id="stVol">–</div><div class="l">tBNB routed</div></div>
+        </div>
+        <div id="recent" style="margin-top:8px"></div>
+      </section>
     </div>
-    <label>Amount</label>
-    <input id="amount" placeholder="0.0" inputmode="decimal" autocomplete="off">
-    <button class="btn" id="sendBtn" disabled>Connect wallet first</button>
-    <div id="status"></div>
-  </div>
 
-  <div class="card">
-    <h3>Your balances across chains</h3>
-    <div id="balances"><div class="fine" style="text-align:left">Connect your wallet — balances are public data, read directly from each chain. No signature, no approval.</div></div>
-  </div>
+    <div>
+      <section class="card">
+        <div class="row">
+          <h3 style="margin:0">Your wallet</h3>
+          <button class="btn ghost" id="connectBtn">Connect wallet</button>
+        </div>
+        <div id="walletInfo" class="hidden" style="margin-top:12px">
+          <div class="addr" id="myAddr"></div>
+          <div style="margin-top:9px" id="myBadge"></div>
+        </div>
+        <p class="fine" style="margin-top:12px">Connecting only reveals your address. Sending is holder-only: your wallet must own an Agent ID.</p>
+      </section>
 
-  <div class="card">
-    <h3>Live on this contract</h3>
-    <div class="stat">
-      <div><div class="n" id="stSends">–</div><div class="l">sends</div></div>
-      <div><div class="n" id="stSenders">–</div><div class="l">unique senders</div></div>
-      <div><div class="n" id="stVol">–</div><div class="l">tBNB routed</div></div>
+      <section class="card">
+        <h3>Your balances across chains</h3>
+        <div id="balances"><div class="fine">Connect your wallet — balances are public data, read directly from each chain. No signature, no approval.</div></div>
+      </section>
+
+      <section class="card" id="contracts">
+        <h3>Contracts</h3>
+        <div class="addrbox"><span class="who">Route</span><code id="routeAddr">0x41E21f1882F648d821039B5a47752F0dFE1a91c7</code><button class="copybtn" data-copy="0x41E21f1882F648d821039B5a47752F0dFE1a91c7">Copy</button></div>
+        <div class="addrbox"><span class="who">Registry</span><code>0xF6532Dcf6Bb69727FA9Ee6bbB9f284E1F9ffa1f7</code><button class="copybtn" data-copy="0xF6532Dcf6Bb69727FA9Ee6bbB9f284E1F9ffa1f7">Copy</button></div>
+        <div class="fine">Testnet rehearsal deployment · <a id="contractLink" target="_blank" rel="noopener"></a></div>
+      </section>
     </div>
-    <div id="recent" style="margin-top:8px"></div>
   </div>
 
-  <div class="fine">
-    Contract (testnet): <a id="contractLink" target="_blank" rel="noopener"></a><br>
-    Open-source · verified · no custody · exact-amount approvals only · mainnet soon
-  </div>
+  <section id="install" style="margin-top:6px">
+    <div style="text-align:center;max-width:640px;margin:0 auto 20px">
+      <div class="eyebrow">For AI agents</div>
+      <h2 style="font-size:clamp(24px,4vw,34px);letter-spacing:-.02em;font-weight:850">Give your agent this skill</h2>
+      <p class="sub" style="margin-top:10px">Agentic Route ships as an open agent skill. Install it once, then just tell your agent <i>“send $1 of BNB to abangda.ai”</i> — it resolves the name and routes the payment through the contract, with your confirmation in your wallet.</p>
+    </div>
+    <div class="term">
+      <div class="termbar">
+        <span class="tdot" style="background:#ff5f57"></span><span class="tdot" style="background:#febc2e"></span><span class="tdot" style="background:#28c840"></span>
+        <span class="t">install — agentic-route skill</span>
+      </div>
+      <div class="termbody">
+        <div class="snip">
+          <div class="lbl">Option 1 · Paste this to your agent</div>
+          <div class="codebox"><code id="instAgent">Install the Agentic Route skill from https://gondok18-ui.github.io/agentic-route/skill.md and use it whenever I ask to send crypto to an Agent ID name.</code><button class="copybtn" data-target="instAgent">Copy</button></div>
+        </div>
+        <div class="snip">
+          <div class="lbl">Option 2 · One line in your terminal</div>
+          <div class="codebox"><code id="instCli"><span class="p">$</span> mkdir -p ~/.agents/skills/agentic-route &amp;&amp; curl -sL https://gondok18-ui.github.io/agentic-route/skill.md -o ~/.agents/skills/agentic-route/SKILL.md</code><button class="copybtn" data-copy="mkdir -p ~/.agents/skills/agentic-route && curl -sL https://gondok18-ui.github.io/agentic-route/skill.md -o ~/.agents/skills/agentic-route/SKILL.md">Copy</button></div>
+        </div>
+        <div class="snip">
+          <div class="lbl">The skill file itself</div>
+          <div class="codebox"><code>https://gondok18-ui.github.io/agentic-route/skill.md</code><button class="copybtn" data-copy="https://gondok18-ui.github.io/agentic-route/skill.md">Copy</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Open-source · verified · no custody · exact-amount approvals only · mainnet soon<br>
+    Built for the Binance Wallet × BNB Chain Agent ID Hackathon · <a href="https://github.com/Gondok18-ui/agentic-route" target="_blank" rel="noopener">github.com/Gondok18-ui/agentic-route</a>
+  </footer>
 </div>
 
 <script>
@@ -215,7 +366,7 @@ async function loadBalances() {
   const box = $("balances"); box.innerHTML = "";
   for (const c of CHAINS) {
     const row = document.createElement("div"); row.className = "bal";
-    row.innerHTML = "<span>" + c.name + "</span><b>…</b>"; box.appendChild(row);
+    row.innerHTML = "<span class='chain'><span class='dot'></span>" + c.name + "</span><b>…</b>"; box.appendChild(row);
     try { const b = await rpc(c.rpc, "eth_getBalance", [account, "latest"]);
       row.querySelector("b").textContent = fmt(BigInt(b), 18, c.sym);
     } catch (e) { row.querySelector("b").textContent = "unavailable"; }
@@ -293,15 +444,30 @@ async function loadStats() {
     logs.forEach(l => senders.add(decAddr(l.topics[1])));
     $("stSends").textContent = logs.length; $("stSenders").textContent = senders.size;
     $("stVol").textContent = (Number(vol) / 1e18).toLocaleString("en-US", { maximumFractionDigits: 4 });
-    $("recent").innerHTML = items.join("") || "<div class='fine' style='text-align:left'>No sends yet — be the first.</div>";
+    $("recent").innerHTML = items.join("") || "<div class='fine'>No sends yet — be the first.</div>";
   } catch (e) { /* stats are best-effort */ }
 }
 
 /* ---------- init ---------- */
-$("contractLink").textContent = NET.route; $("contractLink").href = NET.explorer + "/address/" + NET.route;
+$("contractLink").textContent = "View on BscScan"; $("contractLink").href = NET.explorer + "/address/" + NET.route;
 const q = new URLSearchParams(location.search).get("to");
 if (q) { $("toName").value = q; resolveName(); }
 loadStats();
+</script>
+<script>
+/* copy buttons (install snippets + contract addresses) */
+document.querySelectorAll(".copybtn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const text = btn.dataset.copy || (btn.dataset.target ? document.getElementById(btn.dataset.target).textContent : "");
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+      ta.select(); try { document.execCommand("copy"); } catch (err) {} ta.remove();
+    }
+    const old = btn.textContent; btn.textContent = "Copied ✓";
+    setTimeout(() => { btn.textContent = old; }, 1600);
+  });
+});
 </script>
 </body>
 </html>
